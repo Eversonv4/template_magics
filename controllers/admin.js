@@ -17,7 +17,7 @@ exports.postAddProduct = async (req, res, next) => {
   const price = req.body.price;
   const description = req.body.description;
 
-  const productSaved = await Product.create({
+  await req.user.createProduct({
     title,
     price,
     imageUrl,
@@ -25,50 +25,53 @@ exports.postAddProduct = async (req, res, next) => {
   });
 
   console.log("Created product");
+
+  res.redirect("/admin/products");
 };
 
-exports.getEditProduct = (req, res, next) => {
+exports.getEditProduct = async (req, res, next) => {
+  const { productId } = req.params;
   const editMode = req.query.edit;
 
   if (!editMode) {
     return res.redirect("/");
   }
 
-  const { productId } = req.params;
+  const { dataValues: product } = await Product.findByPk(productId);
 
-  Product.findById(productId, (product) => {
-    if (!product) {
-      return res.redirect("/");
-    }
+  if (!product) {
+    return res.redirect("/");
+  }
 
-    res.render("admin/edit-product", {
-      pageTitle: "Edit Product",
-      path: "/admin/edit-product",
-      editing: editMode,
-      product: product,
-    });
+  res.render("admin/edit-product", {
+    pageTitle: "Edit Product",
+    path: "/admin/edit-product",
+    editing: editMode,
+    product: product,
   });
 };
 
 exports.postEditProduct = async (req, res, next) => {
   const { productId, title, price, imageUrl, description } = req.body;
 
-  const updatedProduct = new Product(
-    productId,
-    title,
-    imageUrl,
-    description,
-    price
+  const response = await Product.update(
+    {
+      title,
+      price,
+      imageUrl,
+      description,
+    },
+    {
+      where: { id: productId },
+    }
   );
-
-  updatedProduct.save();
 
   return res.redirect("/admin/products");
 };
 
-exports.postDeleteProduct = (req, res, next) => {
+exports.postDeleteProduct = async (req, res, next) => {
   const { productId } = req.body;
-  Product.deleteById(productId);
+  await Product.destroy({ where: { id: productId } });
   res.redirect("/admin/products");
 };
 
