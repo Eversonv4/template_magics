@@ -1,32 +1,29 @@
-const db = require("../util/database");
-const Cart = require("./cart");
+const { INTEGER, STRING, DOUBLE } = require("sequelize");
 
-module.exports = class Product {
-  constructor(id, title, imageUrl, description, price) {
-    this.id = id;
-    this.title = title;
-    this.imageUrl = imageUrl;
-    this.description = description;
-    this.price = price;
-  }
+const sequelize = require("../util/database");
 
-  async save() {
-    return await db.execute(
-      "INSERT INTO products (title, price, description, imageUrl) Values (?, ?, ?, ?)",
-      [this.title, this.price, this.description, this.imageUrl]
-    );
-  }
+const Product = sequelize.define("product", {
+  id: {
+    type: INTEGER,
+    autoIncrement: true,
+    allowNull: false,
+    primaryKey: true,
+  },
+  title: STRING,
+  price: {
+    type: DOUBLE,
+    allowNull: false,
+  },
+  imageUrl: {
+    type: STRING,
+    allowNull: false,
+  },
+  description: {
+    type: STRING,
+    allowNull: false,
+  },
+});
 
-  static deleteById(id) {}
+module.exports = Product;
 
-  static async fetchAll() {
-    return await db.execute("SELECT * FROM products");
-  }
-
-  static async findById(id) {
-    console.log(id);
-    return await db.execute("SELECT * FROM products WHERE products.id = ?", [
-      id,
-    ]);
-  }
-};
+// findById()  ==> findByPk()

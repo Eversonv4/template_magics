@@ -16,9 +16,15 @@ exports.postAddProduct = async (req, res, next) => {
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
-  const product = new Product(null, title, imageUrl, description, price);
-  await product.save();
-  res.redirect("/");
+
+  const productSaved = await Product.create({
+    title,
+    price,
+    imageUrl,
+    description,
+  });
+
+  console.log("Created product");
 };
 
 exports.getEditProduct = (req, res, next) => {
@@ -66,12 +72,13 @@ exports.postDeleteProduct = (req, res, next) => {
   res.redirect("/admin/products");
 };
 
-exports.getProducts = (req, res, next) => {
-  Product.fetchAll((products) => {
-    res.render("admin/products", {
-      prods: products,
-      pageTitle: "Admin Products",
-      path: "/admin/products",
-    });
+exports.getProducts = async (req, res, next) => {
+  const rawProductsData = await Product.findAll();
+  const products = rawProductsData.map((product) => product.dataValues);
+
+  res.render("admin/products", {
+    prods: products,
+    pageTitle: "Admin Products",
+    path: "/admin/products",
   });
 };
